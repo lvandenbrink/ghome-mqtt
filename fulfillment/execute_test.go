@@ -1,4 +1,4 @@
-package fullfillment
+package fulfillment
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 
 func TestFillMessage(t *testing.T) {
 	// messageHandlerMock := &MessageHandlerMock{map[string][]string{}}
-	fullfillment := &Fullfillment{
+	fulfillment := &Fulfillment{
 		executionTemplates: map[string]string{
 			"command.Test":    `{"argument":"%s"}`,
 			"command.TestTwo": `{"first_argument":"%s", "second_argument":"%s"}`,
@@ -86,7 +86,7 @@ func TestFillMessage(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := fullfillment.fillMessage(test.device, test.command, test.args...)
+			result, err := fulfillment.fillMessage(test.device, test.command, test.args...)
 
 			assert.Equal(t, test.expectedResult, result)
 			if test.expectedError == nil {
@@ -100,7 +100,7 @@ func TestFillMessage(t *testing.T) {
 
 func TestExecute(t *testing.T) {
 	messageHandlerMock := &MessageHandlerMock{map[string]string{}}
-	fullfillment := &Fullfillment{
+	fulfillment := &Fulfillment{
 		devices: map[string]Device{
 			"test-device": {
 				Topic: "topic/device-id/set",
@@ -224,7 +224,7 @@ func TestExecute(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			messageHandlerMock.Reset()
 
-			result := fullfillment.execute(test.requestId, test.payload)
+			result := fulfillment.execute(test.requestId, test.payload)
 
 			assert.Equal(t, test.expectedResult, result)
 			if test.expectedPublication {
@@ -239,7 +239,7 @@ func TestExecute(t *testing.T) {
 
 func TestStateChange(t *testing.T) {
 	messageHandlerMock := &MessageHandlerMock{map[string]string{}}
-	fullfillment := &Fullfillment{
+	fulfillment := &Fulfillment{
 		devices: map[string]Device{
 			"test-device": {
 				Topic: "topic/device-id/set",
@@ -275,10 +275,10 @@ func TestStateChange(t *testing.T) {
 		},
 	}
 
-	_ = fullfillment.execute("test-request", payload)
+	_ = fulfillment.execute("test-request", payload)
 
-	assert.Equal(t, true, fullfillment.devices["test-device"].State.On)
-	assert.Equal(t, "this", fullfillment.devices["test-device"].State.State)
+	assert.Equal(t, true, fulfillment.devices["test-device"].State.On)
+	assert.Equal(t, "this", fulfillment.devices["test-device"].State.State)
 }
 
 type MessageHandlerMock struct {

@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	auth2 "github.com/mrlauy/ghome-mqtt/auth"
 	"github.com/mrlauy/ghome-mqtt/config"
-	"github.com/mrlauy/ghome-mqtt/fullfillment"
+	"github.com/mrlauy/ghome-mqtt/fulfillment"
 	"github.com/mrlauy/ghome-mqtt/mqtt"
 )
 
@@ -33,9 +33,9 @@ func main() {
 		return
 	}
 
-	fullfillmentManager, err := fullfillment.NewFullfillment(messageHandler, cfg.Devices, cfg.ExecutionTemplates)
+	fulfillmentManager, err := fulfillment.NewFulfillment(messageHandler, cfg.Devices, cfg.ExecutionTemplates)
 	if err != nil {
-		log.Error("failed to start fullfillment handler", "err", err)
+		log.Error("failed to start fulfillment handler", "err", err)
 		return
 	}
 
@@ -52,7 +52,7 @@ func main() {
 
 	smarthomeRouter := router.PathPrefix("/smarthome").Subrouter()
 	smarthomeRouter.Use(auth.ValidateToken)
-	smarthomeRouter.HandleFunc("/fulfillment", fullfillmentManager.Handler).Methods("POST")
+	smarthomeRouter.HandleFunc("/fulfillment", fulfillmentManager.Handler).Methods("POST")
 
 	http.Handle("/", router)
 

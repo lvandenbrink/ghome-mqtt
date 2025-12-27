@@ -5,11 +5,11 @@ Cloud2Cloud server to send actions to your MQTT server.
 ## Setup
 
 In the Google Actions Console configure the following:
-- Fullfillment URL: https://exmaple.com/smarthome/fulfillment
+- Fulfillment URL: https://example.com/smarthome/fulfillment
 - OAuth2 client id
 - OAuth2 client secret
-- Authorization URL: https://exmaple.com/oauth/authorize
-- Token URL: https://exmaple.com/oauth/token
+- Authorization URL: https://example.com/oauth/authorize
+- Token URL: https://example.com/oauth/token
 
 ### Config
 Create a `config.yaml` or override the location with the environment variable`CONFIG_FILE`. Config the client id and secret in the config file or environment variables.

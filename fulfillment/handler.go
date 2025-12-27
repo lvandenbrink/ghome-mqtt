@@ -1,4 +1,4 @@
-package fullfillment
+package fulfillment
 
 import (
 	"encoding/json"
@@ -66,7 +66,7 @@ type LocalState struct {
 	DebugCommand []string
 }
 
-type Fullfillment struct {
+type Fulfillment struct {
 	handler            MessageHandler
 	devices            map[string]Device
 	syncPayload        []SyncDevices
@@ -78,21 +78,21 @@ type MessageHandler interface {
 	RegisterStateChangeListener(device string, topic string, callback func(string, map[string]interface{})) error
 }
 
-func NewFullfillment(handler MessageHandler, deviceConfigs map[string]config.DeviceConfig, executionTemplates map[string]string) (*Fullfillment, error) {
+func NewFulfillment(handler MessageHandler, deviceConfigs map[string]config.DeviceConfig, executionTemplates map[string]string) (*Fulfillment, error) {
 	devices, err := initDevices(deviceConfigs)
 	if err != nil {
 		return nil, err
 	}
 
-	fullfillment := &Fullfillment{
+	fulfillment := &Fulfillment{
 		handler:            handler,
 		devices:            devices,
 		syncPayload:        syncPayload(deviceConfigs),
 		executionTemplates: executionTemplates,
 	}
-	fullfillment.startListening(deviceConfigs)
+	fulfillment.startListening(deviceConfigs)
 
-	return fullfillment, nil
+	return fulfillment, nil
 }
 
 func initDevices(deviceConfigs map[string]config.DeviceConfig) (map[string]Device, error) {
@@ -109,23 +109,23 @@ func initDevices(deviceConfigs map[string]config.DeviceConfig) (map[string]Devic
 	return devices, nil
 }
 
-func (f *Fullfillment) startListening(deviceConfigs map[string]config.DeviceConfig) {
+func (f *Fulfillment) startListening(deviceConfigs map[string]config.DeviceConfig) {
 	for device, config := range deviceConfigs {
 		f.handler.RegisterStateChangeListener(device, config.Subscription, f.setState)
 	}
 }
 
-func (f *Fullfillment) Handler(w http.ResponseWriter, r *http.Request) {
+func (f *Fulfillment) Handler(w http.ResponseWriter, r *http.Request) {
 	var request FullfillementRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		log.Error("fullfillment bad request", "err", err)
+		log.Error("fulfillment bad request", "err", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	response := f.handle(request)
-	log.Info("fullfillment response", "inputs", request.Inputs, "response", toJson(response))
+	log.Info("fulfillment response", "inputs", request.Inputs, "response", toJson(response))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -136,7 +136,7 @@ func (f *Fullfillment) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (f *Fullfillment) handle(request FullfillementRequest) interface{} {
+func (f *Fulfillment) handle(request FullfillementRequest) interface{} {
 	for _, input := range request.Inputs {
 		switch input.Intent {
 		case "action.devices.SYNC":

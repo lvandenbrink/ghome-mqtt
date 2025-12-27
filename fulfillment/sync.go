@@ -1,4 +1,4 @@
-package fullfillment
+package fulfillment
 
 import (
 	"github.com/mrlauy/ghome-mqtt/config"
@@ -156,7 +156,7 @@ func syncPayload(devices map[string]config.DeviceConfig) []SyncDevices {
 	return syncDevices
 }
 
-func (f *Fullfillment) sync(request FullfillementRequest, userId string) SyncResponse {
+func (f *Fulfillment) sync(request FullfillementRequest, userId string) SyncResponse {
 	requestId := request.RequestID
 	log.Info("handle sync", "request", requestId, "user", userId)
 	return SyncResponse{

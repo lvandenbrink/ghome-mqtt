@@ -1,4 +1,4 @@
-package fullfillment
+package fulfillment
 
 import (
 	"fmt"
@@ -31,7 +31,7 @@ import (
 // 	SwVersion    string `json:"swVersion,omitempty"`
 // }
 
-func (f *Fullfillment) setState(deviceId string, payload map[string]interface{}) {
+func (f *Fulfillment) setState(deviceId string, payload map[string]interface{}) {
 	if _, ok := payload["state"]; !ok {
 		log.Info("failed to get state for device", "device", deviceId, "payload", payload)
 		return

@@ -1,4 +1,4 @@
-package fullfillment
+package fulfillment
 
 import log "log/slog"
 
@@ -27,7 +27,7 @@ type Color struct {
 	SpectrumRgb int `json:"spectrumRgb,omitempty"`
 }
 
-func (f *Fullfillment) query(requestId string, payload PayloadRequest) QueryResponse {
+func (f *Fulfillment) query(requestId string, payload PayloadRequest) QueryResponse {
 	log.Info("handle sync request", "request", requestId, "payload", payload)
 	devices := map[string]QueryDevice{}
 	for _, device := range payload.Devices {

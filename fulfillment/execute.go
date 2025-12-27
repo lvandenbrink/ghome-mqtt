@@ -1,4 +1,4 @@
-package fullfillment
+package fulfillment
 
 import (
 	"fmt"
@@ -86,7 +86,7 @@ type ExecuteStates struct {
 
 }
 
-func (f *Fullfillment) execute(requestId string, payload PayloadRequest) ExecuteResponse {
+func (f *Fulfillment) execute(requestId string, payload PayloadRequest) ExecuteResponse {
 	log.Info("handle execute request", "request", requestId, "payload", payload)
 
 	executeCommands := []ExecuteCommands{}
@@ -121,7 +121,7 @@ func (f *Fullfillment) execute(requestId string, payload PayloadRequest) Execute
 	}
 }
 
-func (f *Fullfillment) executeCommand(deviceId string, execution ExecutionRequest) ExecuteCommands {
+func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest) ExecuteCommands {
 	device := f.devices[deviceId]
 	defer func() {
 		f.devices[deviceId] = device
@@ -214,7 +214,7 @@ func (f *Fullfillment) executeCommand(deviceId string, execution ExecutionReques
 	}
 }
 
-func (f *Fullfillment) fillMessage(deviceId string, command string, args ...any) (msg string, err error) {
+func (f *Fulfillment) fillMessage(deviceId string, command string, args ...any) (msg string, err error) {
 	messageTemplate, commandFound := f.executionTemplates[command]
 	if !commandFound {
 		return "", fmt.Errorf("failed to find command `%s` for device `%s` in execution template", command, deviceId)
@@ -231,7 +231,7 @@ func (f *Fullfillment) fillMessage(deviceId string, command string, args ...any)
 	return message, nil
 }
 
-func (f *Fullfillment) sentCommand(deviceId string, message string) {
+func (f *Fulfillment) sentCommand(deviceId string, message string) {
 	topic := f.devices[deviceId].Topic
 	f.handler.SendMessage(topic, message)
 }
