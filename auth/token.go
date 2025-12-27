@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-oauth2/oauth2/v4"
-	"github.com/go-session/session"
 	log "log/slog"
 	"net/http"
 	"time"
+
+	"github.com/go-oauth2/oauth2/v4"
+	"github.com/go-session/session"
 )
 
 func (a *Auth) Authorize(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +17,7 @@ func (a *Auth) Authorize(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost && r.Form == nil {
 		if err := r.ParseForm(); err != nil {
-			log.Error("error parsing authorize form", err)
+			log.Error("error parsing authorize form", "err", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -24,7 +25,7 @@ func (a *Auth) Authorize(w http.ResponseWriter, r *http.Request) {
 
 	sessionStore, err := session.Start(r.Context(), w, r)
 	if err != nil {
-		log.Error("failed to get session", err)
+		log.Error("failed to get session", "err", err)
 		http.Error(w, "server side error: #3100", http.StatusInternalServerError)
 		return
 	}
@@ -44,7 +45,7 @@ func (a *Auth) Authorize(w http.ResponseWriter, r *http.Request) {
 
 		authorizationCode, err := a.generateCode(r.Context(), "code", userId, redirectUri.(string), "", r)
 		if err != nil {
-			log.Error("failed to create code", err)
+			log.Error("failed to create code", "err", err)
 			http.Error(w, "server side error: #3203", http.StatusInternalServerError)
 			return
 		}
@@ -67,7 +68,7 @@ func (a *Auth) Authorize(w http.ResponseWriter, r *http.Request) {
 		sessionStore.Delete("redirectUri")
 		err = sessionStore.Save()
 		if err != nil {
-			log.Error("failed to store session", err)
+			log.Error("failed to store session", "err", err)
 			http.Error(w, "server error", http.StatusInternalServerError)
 			return
 		}
@@ -106,7 +107,7 @@ func (a *Auth) Authorize(w http.ResponseWriter, r *http.Request) {
 	sessionStore.Set("scope", scope)
 	err = sessionStore.Save()
 	if err != nil {
-		log.Error("failed to store session", err)
+		log.Error("failed to store session", "err", err)
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
@@ -122,7 +123,7 @@ func (a *Auth) Token(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost && r.Form == nil {
 		if err := r.ParseForm(); err != nil {
-			log.Error("error parsing token form:", err)
+			log.Error("error parsing token form:", "err", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -167,7 +168,7 @@ func (a *Auth) Token(w http.ResponseWriter, r *http.Request) {
 
 		response, err = a.generateAuthorizationToken(client, secret, redirectUri, scope, authorizationCode, grantType, r)
 		if err != nil {
-			log.Error("failed to generate code", "client", client, err)
+			log.Error("failed to generate code", "client", client, "err", err)
 			http.Error(w, "failed to generate code", http.StatusInternalServerError)
 		}
 	} else if grantType == "refresh_token" {
@@ -176,7 +177,7 @@ func (a *Auth) Token(w http.ResponseWriter, r *http.Request) {
 
 		response, err = a.generateRefreshToken(client, secret, refreshToken, scope, grantType, r)
 		if err != nil {
-			log.Error("failed to generate code", "client", client, err)
+			log.Error("failed to generate code", "client", client, "err", err)
 			http.Error(w, "failed to generate code", http.StatusInternalServerError)
 			return
 		}
@@ -192,7 +193,7 @@ func (a *Auth) Token(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
-		log.Error("failed to generate response", "client", client, err)
+		log.Error("failed to generate response", "client", client, "err", err)
 		http.Error(w, "failed to generate response", http.StatusInternalServerError)
 		return
 	}

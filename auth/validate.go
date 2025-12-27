@@ -17,7 +17,7 @@ func (a *Auth) ValidateToken(next http.Handler) http.Handler {
 
 		tokenInfo, err := a.manager.LoadAccessToken(r.Context(), token)
 		if err != nil {
-			log.Warn("unauthorized", "token", token, err)
+			log.Warn("unauthorized", "token", token, "err", err)
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}

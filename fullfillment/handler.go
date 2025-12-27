@@ -2,9 +2,10 @@ package fullfillment
 
 import (
 	"encoding/json"
-	"github.com/mrlauy/ghome-mqtt/config"
 	log "log/slog"
 	"net/http"
+
+	"github.com/mrlauy/ghome-mqtt/config"
 )
 
 type FullfillementRequest struct {
@@ -118,7 +119,7 @@ func (f *Fullfillment) Handler(w http.ResponseWriter, r *http.Request) {
 	var request FullfillementRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		log.Error("fullfillment bad request", err)
+		log.Error("fullfillment bad request", "err", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -131,7 +132,7 @@ func (f *Fullfillment) Handler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
-		log.Error("failed to return response", err)
+		log.Error("failed to return response", "err", err)
 	}
 }
 
@@ -158,7 +159,7 @@ func (f *Fullfillment) handle(request FullfillementRequest) interface{} {
 func toJson(v any) string {
 	str, err := json.Marshal(v)
 	if err != nil {
-		log.Error("failed to return response", err)
+		log.Error("failed to return response", "err", err)
 	}
 	return string(str)
 }

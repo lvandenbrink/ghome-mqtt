@@ -132,7 +132,7 @@ func (f *Fullfillment) executeCommand(deviceId string, execution ExecutionReques
 		action := onOffValue(execution.Params.On)
 		message, err := f.fillMessage(deviceId, execution.Command, action)
 		if err != nil {
-			log.Error("failed to execute command '%s'", execution.Command, err)
+			log.Error("failed to execute command '%s'", "command", execution.Command, "err", err)
 			return errorCommand(deviceId)
 		}
 
@@ -149,7 +149,7 @@ func (f *Fullfillment) executeCommand(deviceId string, execution ExecutionReques
 	case "action.devices.commands.mute":
 		message, err := f.fillMessage(deviceId, execution.Command, strconv.FormatBool(execution.Params.Mute))
 		if err != nil {
-			log.Error("failed to execute command '%s'", execution.Command, err)
+			log.Error("failed to execute command '%s'", "command", execution.Command, "err", err)
 			return errorCommand(deviceId)
 		}
 
@@ -167,7 +167,7 @@ func (f *Fullfillment) executeCommand(deviceId string, execution ExecutionReques
 		volume := execution.Params.VolumeLevel
 		message, err := f.fillMessage(deviceId, execution.Command, strconv.Itoa(volume))
 		if err != nil {
-			log.Error("failed to execute command '%s'", execution.Command, err)
+			log.Error("failed to execute command '%s'", "command", execution.Command, "err", err)
 			return errorCommand(deviceId)
 		}
 
@@ -188,7 +188,7 @@ func (f *Fullfillment) executeCommand(deviceId string, execution ExecutionReques
 		}
 		message, err := f.fillMessage(deviceId, execution.Command, action)
 		if err != nil {
-			log.Error("failed to execute command '%s'", execution.Command, err)
+			log.Error("failed to execute command '%s'", "command", execution.Command, "err", err)
 			return errorCommand(deviceId)
 		}
 

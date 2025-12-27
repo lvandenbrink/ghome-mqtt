@@ -1,12 +1,13 @@
 package auth
 
 import (
-	"github.com/go-session/session"
-	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	log "log/slog"
 	"net/http"
 	"strings"
+
+	"github.com/go-session/session"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type PageData struct {
@@ -17,7 +18,7 @@ func (a *Auth) Login(page *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionStore, err := session.Start(r.Context(), w, r)
 		if err != nil {
-			log.Error("failed to get login session", err)
+			log.Error("failed to get login session", "err", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -44,7 +45,7 @@ func (a *Auth) Login(page *template.Template) http.HandlerFunc {
 			sessionStore.Set("LoggedInUserID", username)
 			err = sessionStore.Save()
 			if err != nil {
-				log.Error("failed to store session", err)
+				log.Error("failed to store session", "err", err)
 				responseError(w, page, "server error", http.StatusInternalServerError)
 				return
 			}
@@ -57,7 +58,7 @@ func (a *Auth) Login(page *template.Template) http.HandlerFunc {
 		log.Info("/login")
 		err = page.Execute(w, nil)
 		if err != nil {
-			log.Error("failed to render login page", err)
+			log.Error("failed to render login page", "err", err)
 			http.Error(w, "server error", http.StatusInternalServerError)
 			return
 		}
@@ -68,7 +69,7 @@ func (a *Auth) Confirm(page *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionStore, err := session.Start(r.Context(), w, r)
 		if err != nil {
-			log.Error("error starting session in confirm handler", err)
+			log.Error("error starting session in confirm handler", "err", err)
 			responseError(w, page, "server error", http.StatusInternalServerError)
 			return
 		}
@@ -84,7 +85,7 @@ func (a *Auth) Confirm(page *template.Template) http.HandlerFunc {
 		log.Info("/confirm", "user", userId)
 		err = page.Execute(w, nil)
 		if err != nil {
-			log.Error("failed to render login page", err)
+			log.Error("failed to render login page", "err", err)
 			http.Error(w, "server error", http.StatusInternalServerError)
 			return
 		}
@@ -94,7 +95,7 @@ func (a *Auth) Confirm(page *template.Template) http.HandlerFunc {
 func responseError(w http.ResponseWriter, page *template.Template, message string, code int) {
 	err := page.Execute(w, PageData{Error: message})
 	if err != nil {
-		log.Error("failed to render login page", err)
+		log.Error("failed to render login page", "err", err)
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}

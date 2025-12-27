@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
-	auth2 "github.com/mrlauy/ghome-mqtt/auth"
-	"github.com/mrlauy/ghome-mqtt/config"
-	"github.com/mrlauy/ghome-mqtt/fullfillment"
-	"github.com/mrlauy/ghome-mqtt/mqtt"
 	"html/template"
 	log "log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+
+	"github.com/gorilla/mux"
+	auth2 "github.com/mrlauy/ghome-mqtt/auth"
+	"github.com/mrlauy/ghome-mqtt/config"
+	"github.com/mrlauy/ghome-mqtt/fullfillment"
+	"github.com/mrlauy/ghome-mqtt/mqtt"
 )
 
 const requestFullDump = false
@@ -19,7 +20,7 @@ const requestFullDump = false
 func main() {
 	cfg, err := config.ReadConfig()
 	if err != nil {
-		log.Error("failed to read config: ", err)
+		log.Error("failed to read config", "err", err)
 		return
 	}
 
@@ -28,13 +29,13 @@ func main() {
 	auth := auth2.NewAuth(cfg.Auth)
 	messageHandler, err := mqtt.NewMqtt(cfg.Mqtt)
 	if err != nil {
-		log.Error("failed to start mqtt: ", err)
+		log.Error("failed to start mqtt", "err", err)
 		return
 	}
 
 	fullfillmentManager, err := fullfillment.NewFullfillment(messageHandler, cfg.Devices, cfg.ExecutionTemplates)
 	if err != nil {
-		log.Error("failed to start fullfillment handler: ", err)
+		log.Error("failed to start fullfillment handler", "err", err)
 		return
 	}
 
@@ -58,7 +59,7 @@ func main() {
 	port := cfg.Server.Port
 	log.Info("started server", "port", port)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
-	log.Error("failure during execution", err)
+	log.Error("failure during execution", "err", err)
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -74,7 +75,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 			data, err := httputil.DumpRequest(r, true)
 			if err != nil {
-				log.Error("error dumping request", err)
+				log.Error("error dumping request", "err", err)
 				return
 			}
 			r.Header = headers
@@ -86,7 +87,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 			dump, err := httputil.DumpResponse(recorder.Result(), true)
 			if err != nil {
-				log.Error("error dumping response", err)
+				log.Error("error dumping response", "err", err)
 				return
 			}
 			log.Info(fmt.Sprintf("\n< %s \n %v\n", r.URL, string(dump)))

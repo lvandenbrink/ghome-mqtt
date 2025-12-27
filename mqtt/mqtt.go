@@ -3,9 +3,10 @@ package mqtt
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mrlauy/ghome-mqtt/config"
 	log "log/slog"
 	"time"
+
+	"github.com/mrlauy/ghome-mqtt/config"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -50,7 +51,7 @@ func (m *Mqtt) RegisterStateChangeListener(device string, topic string, callback
 		payload := make(map[string]interface{})
 		err := json.Unmarshal(msg.Payload(), &payload)
 		if err != nil {
-			log.Error("fail to marshal incoming message", "device", device, "topic", topic, err)
+			log.Error("fail to marshal incoming message", "device", device, "topic", topic, "err", err)
 			return
 		}
 
@@ -58,7 +59,7 @@ func (m *Mqtt) RegisterStateChangeListener(device string, topic string, callback
 	}
 
 	if token := m.client.Subscribe(topic, 0, callbackHandler); token.Wait() && token.Error() != nil {
-		log.Error("failed to subscribe", "device", device, "topic", topic, token.Error())
+		log.Error("failed to subscribe", "device", device, "topic", topic, "err", token.Error())
 		return token.Error()
 	}
 	return nil
@@ -81,5 +82,5 @@ var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
 }
 
 var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
-	log.Debug("mqtt client connect lost", err)
+	log.Debug("mqtt client connect lost", "err", err)
 }

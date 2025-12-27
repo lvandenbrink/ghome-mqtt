@@ -2,14 +2,15 @@ package auth
 
 import (
 	"bufio"
+	"os"
+	"strings"
+
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/store"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mrlauy/ghome-mqtt/config"
-	"os"
-	"strings"
 
 	"fmt"
 	log "log/slog"
@@ -31,7 +32,7 @@ func NewAuth(cfg config.AuthConfig) *Auth {
 		Domain: cfg.Client.Domain,
 	})
 	if err != nil {
-		log.Error("failed to load client config in client store", err)
+		log.Error("failed to load client config in client store", "err", err)
 		return nil
 	}
 
@@ -43,7 +44,7 @@ func NewAuth(cfg config.AuthConfig) *Auth {
 
 	credentials, err := loadCredentials(cfg.Credientials)
 	if err != nil || len(credentials) < 1 {
-		log.Warn("no user credentials, add users to .credentials", err)
+		log.Warn("no user credentials, add users to .credentials", "err", err)
 	}
 
 	return &Auth{
