@@ -45,6 +45,10 @@ func main() {
 	router := mux.NewRouter()
 	router.Use(loggingMiddleware)
 
+	staticResources := http.Dir("templates/static")
+	staticFileHandler := http.StripPrefix("/static/", http.FileServer(staticResources))
+	router.PathPrefix("/static/").Handler(staticFileHandler)
+
 	router.HandleFunc("/login", auth.Login(loginPage))
 	router.HandleFunc("/confirm", auth.Confirm(authPage))
 	router.HandleFunc("/oauth/authorize", auth.Authorize)

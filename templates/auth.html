@@ -1,29 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auth</title>
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-  <script src="//code.jquery.com/jquery-2.2.4.min.js"></script>
-  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title>Authorize | Lora</title>
+    <link href="static/style.css" rel="stylesheet" type="text/css"/>
 </head>
-
 <body>
-  <div class="container">
-    <div class="jumbotron">
-      <form action="/oauth/authorize" method="POST">
-        <h1>Authorize</h1>
-        <p>The client would like to perform actions on your behalf.</p>
-         {{if .Error}}<p style="font-style: italic; color: #801515;">{{.Error}}</p>{{end}}
-        <p>
-          <button type="submit" class="btn btn-primary btn-lg" style="width:200px;">
-            Allow
-          </button>
-        </p>
-      </form>
+<main class="container">
+    <div class="logo">
+        <img alt="Logo" height="72" src="/static/logo144.png" width="72">
     </div>
-  </div>
+    <h1>Link Lora with Google</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <div class="notice">
+        <p>Your Lora account will be securely linked to your Google account.</p>
+    </div>
+    <form action="/oauth/authorize" method="POST">
+        <div class="notice">
+            <p>By signing in, you are authorizing Google to control your devices.</p>
+        </div>
+        <div class="actions">
+            <button type="button" class="btn-auth btn-cancel">
+                Cancel
+            </button>
+            <button type="submit" class="btn-auth btn-primary">
+                Authorize
+            </button>
+        </div>
+    </form>
+</main>
 </body>
 </html>
