@@ -100,7 +100,6 @@ func (a *Auth) Authorize(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO deal with scope?
-
 	sessionStore.Set("client", client)
 	sessionStore.Set("state", state)
 	sessionStore.Set("redirectUri", redirectUri)
@@ -170,6 +169,7 @@ func (a *Auth) Token(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("failed to generate code", "client", client, "err", err)
 			http.Error(w, "failed to generate code", http.StatusInternalServerError)
+			return
 		}
 	} else if grantType == "refresh_token" {
 		refreshToken := getInput(r, "refresh_token")

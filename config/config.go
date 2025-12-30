@@ -46,7 +46,7 @@ type DeviceConfig struct {
 	Subscription    string         `yaml:"subscription"`
 	Type            string         `yaml:"type"`
 	WillReportState bool           `yaml:"willReportState"`
-	Attributes      SyncAttributes `yaml:"attributes"`
+	Attributes      SyncAttributes `yaml:"attributes,omitempty"`
 	Traits          []string       `yaml:"traits"`
 }
 

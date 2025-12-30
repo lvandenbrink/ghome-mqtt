@@ -83,7 +83,6 @@ type ExecuteStates struct {
 	// action.devices.traits.TransportControl
 	ActivityState string `json:"activityState,omitempty"` // Supported values: INACTIVE, STANDBY, ACTIVE
 	PlaybackState string `json:"playbackState,omitempty"` // Supported values: PAUSED, PLAYING, FAST_FORWARDING, REWINDING, BUFFERING, STOPPED
-
 }
 
 func (f *Fulfillment) execute(requestId string, payload PayloadRequest) ExecuteResponse {
@@ -132,7 +131,7 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 		action := onOffValue(execution.Params.On)
 		message, err := f.fillMessage(deviceId, execution.Command, action)
 		if err != nil {
-			log.Error("failed to execute command '%s'", "command", execution.Command, "err", err)
+			log.Error("failed to execute command", "command", execution.Command, "err", err)
 			return errorCommand(deviceId)
 		}
 
@@ -149,7 +148,7 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 	case "action.devices.commands.mute":
 		message, err := f.fillMessage(deviceId, execution.Command, strconv.FormatBool(execution.Params.Mute))
 		if err != nil {
-			log.Error("failed to execute command '%s'", "command", execution.Command, "err", err)
+			log.Error("failed to execute command", "command", execution.Command, "err", err)
 			return errorCommand(deviceId)
 		}
 
@@ -167,7 +166,7 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 		volume := execution.Params.VolumeLevel
 		message, err := f.fillMessage(deviceId, execution.Command, strconv.Itoa(volume))
 		if err != nil {
-			log.Error("failed to execute command '%s'", "command", execution.Command, "err", err)
+			log.Error("failed to execute command", "command", execution.Command, "err", err)
 			return errorCommand(deviceId)
 		}
 
@@ -188,7 +187,7 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 		}
 		message, err := f.fillMessage(deviceId, execution.Command, action)
 		if err != nil {
-			log.Error("failed to execute command '%s'", "command", execution.Command, "err", err)
+			log.Error("failed to execute command", "command", execution.Command, "err", err)
 			return errorCommand(deviceId)
 		}
 
