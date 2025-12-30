@@ -5,6 +5,7 @@ import (
 	log "log/slog"
 	"net/http"
 
+	"github.com/go-session/session"
 	"github.com/mrlauy/ghome-mqtt/config"
 )
 
@@ -124,7 +125,8 @@ func (f *Fulfillment) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := f.handle(request)
+	userId := getUserId(w, r)
+	response := f.handle(request, userId)
 	log.Info("fulfillment response", "inputs", request.Inputs, "response", toJson(response))
 
 	w.Header().Set("Content-Type", "application/json")
@@ -136,11 +138,11 @@ func (f *Fulfillment) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (f *Fulfillment) handle(request FullfillementRequest) interface{} {
+func (f *Fulfillment) handle(request FullfillementRequest, userId string) interface{} {
 	for _, input := range request.Inputs {
 		switch input.Intent {
 		case "action.devices.SYNC":
-			return f.sync(request, "1234")
+			return f.sync(request, userId)
 		case "action.devices.QUERY":
 			return f.query(request.RequestID, input.Payload)
 		case "action.devices.EXECUTE":
@@ -154,6 +156,21 @@ func (f *Fulfillment) handle(request FullfillementRequest) interface{} {
 
 	log.Error("failed to handle unknown input", "inputs", request.Inputs)
 	return EmptyResponse{}
+}
+
+func getUserId(w http.ResponseWriter, r *http.Request) string {
+	sessionStore, err := session.Start(r.Context(), w, r)
+	if err != nil {
+		log.Warn("failed to get session in fulfillment handler", "err", err)
+		return ""
+	}
+
+	userId, ok := sessionStore.Get("LoggedInUserID")
+	if !ok {
+		log.Warn("no user in session for fulfillment handler")
+		return ""
+	}
+	return userId.(string)
 }
 
 func toJson(v any) string {

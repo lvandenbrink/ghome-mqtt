@@ -1,8 +1,9 @@
 package fulfillment
 
 import (
-	"github.com/mrlauy/ghome-mqtt/config"
 	log "log/slog"
+
+	"github.com/mrlauy/ghome-mqtt/config"
 )
 
 /*
@@ -158,7 +159,7 @@ func syncPayload(devices map[string]config.DeviceConfig) []SyncDevices {
 
 func (f *Fulfillment) sync(request FullfillementRequest, userId string) SyncResponse {
 	requestId := request.RequestID
-	log.Info("handle sync", "request", requestId, "user", userId)
+	log.Info("handle sync", "request", requestId, "agentUserId", userId)
 	return SyncResponse{
 		RequestID: requestId,
 		Payload: SyncPayload{
