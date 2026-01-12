@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	log "log/slog"
@@ -14,6 +15,9 @@ import (
 	"github.com/mrlauy/ghome-mqtt/fulfillment"
 	"github.com/mrlauy/ghome-mqtt/mqtt"
 )
+
+//go:embed templates/*
+var files embed.FS
 
 const requestFullDump = false
 
@@ -39,8 +43,8 @@ func main() {
 		return
 	}
 
-	loginPage := template.Must(template.ParseFiles("templates/login.html"))
-	authPage := template.Must(template.ParseFiles("templates/auth.html"))
+	loginPage := template.Must(template.ParseFS(files, "templates/login.html"))
+	authPage := template.Must(template.ParseFS(files, "templates/auth.html"))
 
 	router := mux.NewRouter()
 	router.Use(loggingMiddleware)
