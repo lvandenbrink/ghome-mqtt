@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"io/fs"
 	log "log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -43,18 +44,23 @@ func main() {
 		return
 	}
 
+	staticResources, err := fs.Sub(files, "templates/static")
+	if err != nil {
+		log.Error("failed to load static resources", "err", err)
+		return
+	}
+
+	staticFileHandler := http.StripPrefix("/static/", http.FileServer(http.FS(staticResources)))
 	loginPage := template.Must(template.ParseFS(files, "templates/login.html"))
 	authPage := template.Must(template.ParseFS(files, "templates/auth.html"))
 
 	router := mux.NewRouter()
 	router.Use(loggingMiddleware)
 
-	staticResources := http.Dir("templates/static")
-	staticFileHandler := http.StripPrefix("/static/", http.FileServer(staticResources))
 	router.PathPrefix("/static/").Handler(staticFileHandler)
-
 	router.HandleFunc("/login", auth.Login(loginPage))
 	router.HandleFunc("/confirm", auth.Confirm(authPage))
+
 	router.HandleFunc("/oauth/authorize", auth.Authorize)
 	router.HandleFunc("/oauth/token", auth.Token)
 
