@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"log/slog"
 	"os"
 	"strings"
@@ -15,10 +16,8 @@ const (
 
 func InitLogging(lvl string) {
 	level := toLevel(lvl)
-	textHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level})
-	logger := slog.New(textHandler)
-
-	slog.SetDefault(logger)
+	log.SetOutput(os.Stdout)
+	slog.SetLogLoggerLevel(level)
 }
 
 func toLevel(lvl string) slog.Level {
