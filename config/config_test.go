@@ -45,10 +45,28 @@ func TestParseConfig(t *testing.T) {
 				Type:            "action.devices.types.OUTLET",
 				WillReportState: false,
 				Attributes:      SyncAttributes{},
-				Traits:          []string{"action.devices.commands.OnOff"},
+				Traits:          []string{"action.devices.traits.OnOff"},
+			},
+			"light": {
+				Name:            "light",
+				Topic:           "zigbee2mqtt/light/set",
+				Subscription:    "zigbee2mqtt/light",
+				Type:            "action.devices.types.LIGHT",
+				WillReportState: false,
+				Attributes:      SyncAttributes{},
+				Traits:          []string{"action.devices.traits.OnOff"},
+			},
+			"blind": {
+				Name:            "blind",
+				Topic:           "zigbee2mqtt/blind/set",
+				Subscription:    "zigbee2mqtt/blind",
+				Type:            "action.devices.types.BLINDS",
+				WillReportState: false,
+				Attributes:      SyncAttributes{},
+				Traits:          []string{"action.devices.traits.OpenClose"},
 			},
 		},
-		ExecutionTemplates: map[string]string{"action.devices.commands.OnOff": "{\"state\":\"%s\"}"},
+		ExecutionTemplates: map[string]string{"action.devices.commands.OnOff": "{\"state\":\"%s\"}", "action.devices.commands.OpenClose": "{\"state\":\"%s\"}"},
 	}
 
 	t.Logf("config: %v", cfg)

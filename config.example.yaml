@@ -15,6 +15,23 @@ devices:
     type: action.devices.types.OUTLET
     willReportState: false
     traits:
-      - action.devices.commands.OnOff
+      - action.devices.traits.OnOff
+  light:
+    name: light
+    topic: zigbee2mqtt/light/set
+    subscription: zigbee2mqtt/light
+    type: action.devices.types.LIGHT
+    willReportState: false
+    traits:
+      - action.devices.traits.OnOff
+  blind:
+    name: blind
+    type: action.devices.types.BLINDS
+    topic: zigbee2mqtt/blind/set
+    subscription: zigbee2mqtt/blind
+    willReportState: false
+    traits:
+      - action.devices.traits.OpenClose
 templates:
   action.devices.commands.OnOff: '{"state":"%s"}'
+  action.devices.commands.OpenClose: '{"state":"%s"}'
