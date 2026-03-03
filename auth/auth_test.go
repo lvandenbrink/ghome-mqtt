@@ -1,10 +1,11 @@
 package auth
 
 import (
-	"github.com/mrlauy/ghome-mqtt/config"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/mrlauy/ghome-mqtt/config"
 
 	"github.com/stretchr/testify/assert"
 )
