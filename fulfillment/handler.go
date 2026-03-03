@@ -52,6 +52,10 @@ type ParamsRequest struct {
 	Mute          bool `json:"mute,omitempty"`
 	VolumeLevel   int  `json:"volumeLevel,omitempty"`
 	RelativeSteps int  `json:"relativeSteps,omitempty"`
+	// action.devices.traits.OpenClose
+	OpenPercent   int    `json:"openPercent,omitempty"`
+	OpenDirection string `json:"openDirection,omitempty"`
+	FollowUpToken string `json:"followUpToken,omitempty"`
 }
 
 type EmptyResponse struct {

@@ -53,9 +53,11 @@ type ExecutePayload struct {
 }
 
 type ExecuteCommands struct {
-	Ids    []string      `json:"ids,omitempty"`    // Required. List of device IDs corresponding to this status.
-	Status ExecuteStatus `json:"status,omitempty"` // Required. Result of the execute operation.
+	Ids           []string `json:"ids,omitempty"`           // Required. List of device IDs corresponding to this status.
+	FollowUpToken string   `json:"followUpToken,omitempty"` // Required. Token provided in the original EXECUTE request.
+	OpenPercent   int      `json:"openPercent,omitempty"`   // Required. Indicates the percentage that a device is opened where 0 is closed and 100 is fully open.
 
+	Status    ExecuteStatus `json:"status,omitempty"`    // Required. Result of the execute operation.
 	States    ExecuteStates `json:"states,omitempty"`    // Aligned with per-trait states described in each trait schema reference. These are the states after execution, if available.
 	ErrorCode string        `json:"errorCode,omitempty"` // Expanding ERROR state if needed from the preset error codes, which will map to the errors presented to users.
 }
@@ -144,6 +146,21 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 				On:     execution.Params.On,
 				Online: true,
 			},
+		}
+	case "action.devices.commands.OpenClose":
+		followUpToken := execution.Params.FollowUpToken
+		action := openCloseValue(execution.Params.OpenPercent)
+		message, err := f.fillMessage(deviceId, execution.Command, action)
+		if err != nil {
+			log.Error("failed to execute command", "command", execution.Command, "err", err)
+			return errorFollowUpCommand(followUpToken)
+		}
+
+		f.sentCommand(deviceId, message)
+		return ExecuteCommands{
+			FollowUpToken: followUpToken,
+			Status:        Success,
+			OpenPercent:   execution.Params.OpenPercent,
 		}
 	case "action.devices.commands.mute":
 		message, err := f.fillMessage(deviceId, execution.Command, strconv.FormatBool(execution.Params.Mute))
@@ -242,10 +259,24 @@ func errorCommand(deviceId string) ExecuteCommands {
 		ErrorCode: "hardError",
 	}
 }
+func errorFollowUpCommand(followUpToken string) ExecuteCommands {
+	return ExecuteCommands{
+		FollowUpToken: followUpToken,
+		Status:        Error,
+		ErrorCode:     "hardError",
+	}
+}
 
 func onOffValue(on bool) string {
 	if on {
 		return "on"
 	}
 	return "off"
+}
+
+func openCloseValue(value int) string {
+	if value > 50 {
+		return "CLOSE"
+	}
+	return "OPEN"
 }

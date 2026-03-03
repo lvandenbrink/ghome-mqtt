@@ -281,6 +281,200 @@ func TestStateChange(t *testing.T) {
 	assert.Equal(t, "this", fulfillment.devices["test-device"].State.State)
 }
 
+func TestOpenCloseTrait(t *testing.T) {
+	messageHandlerMock := &MessageHandlerMock{map[string]string{}}
+	fulfillment := &Fulfillment{
+		devices: map[string]Device{
+			"test-blinds": {
+				Topic: "topic/blinds/set",
+				State: LocalState{},
+			},
+		},
+		handler: messageHandlerMock,
+		executionTemplates: map[string]string{
+			"action.devices.commands.OpenClose": `{"command":"%s"}`,
+		},
+	}
+
+	tests := []struct {
+		name                string
+		requestId           string
+		openPercent         int
+		expectedCommand     string
+		expectedStatus      ExecuteStatus
+		expectedOpenPercent int
+		expectedPublication bool
+		expectedMessage     string
+	}{
+		{
+			name:                "Open blinds with 75% (above 50%)",
+			requestId:           "open-blinds",
+			openPercent:         75,
+			expectedCommand:     "CLOSE",
+			expectedStatus:      Success,
+			expectedOpenPercent: 75,
+			expectedPublication: true,
+			expectedMessage:     `{"command":"CLOSE"}`,
+		},
+		{
+			name:                "Close blinds with 25% (below 50%)",
+			requestId:           "close-blinds",
+			openPercent:         25,
+			expectedCommand:     "OPEN",
+			expectedStatus:      Success,
+			expectedOpenPercent: 25,
+			expectedPublication: true,
+			expectedMessage:     `{"command":"OPEN"}`,
+		},
+		{
+			name:                "Fully open at 100%",
+			requestId:           "fully-open",
+			openPercent:         100,
+			expectedCommand:     "CLOSE",
+			expectedStatus:      Success,
+			expectedOpenPercent: 100,
+			expectedPublication: true,
+			expectedMessage:     `{"command":"CLOSE"}`,
+		},
+		{
+			name:                "Fully closed at 0%",
+			requestId:           "fully-closed",
+			openPercent:         0,
+			expectedCommand:     "OPEN",
+			expectedStatus:      Success,
+			expectedOpenPercent: 0,
+			expectedPublication: true,
+			expectedMessage:     `{"command":"OPEN"}`,
+		},
+		{
+			name:                "Boundary case at 50%",
+			requestId:           "boundary-50",
+			openPercent:         50,
+			expectedCommand:     "OPEN",
+			expectedStatus:      Success,
+			expectedOpenPercent: 50,
+			expectedPublication: true,
+			expectedMessage:     `{"command":"OPEN"}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			messageHandlerMock.Reset()
+
+			payload := PayloadRequest{
+				Commands: []CommandRequest{
+					{
+						Devices: []DeviceRequest{
+							{
+								ID: "test-blinds",
+							},
+						},
+						Execution: []ExecutionRequest{
+							{
+								Command: "action.devices.commands.OpenClose",
+								Params: ParamsRequest{
+									OpenPercent:   test.openPercent,
+									FollowUpToken: test.requestId,
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result := fulfillment.execute(test.requestId, payload)
+
+			assert.Equal(t, test.requestId, result.RequestID)
+			assert.Len(t, result.Payload.Commands, 1)
+			command := result.Payload.Commands[0]
+			assert.Equal(t, test.expectedStatus, command.Status)
+			assert.Equal(t, test.expectedOpenPercent, command.OpenPercent)
+			assert.Equal(t, test.requestId, command.FollowUpToken)
+
+			if test.expectedPublication {
+				assert.Contains(t, messageHandlerMock.messages, "topic/blinds/set")
+				assert.Equal(t, test.expectedMessage, messageHandlerMock.messages["topic/blinds/set"])
+			} else {
+				assert.Empty(t, messageHandlerMock.messages)
+			}
+		})
+	}
+}
+
+func TestTraitWithMissingTemplate(t *testing.T) {
+	messageHandlerMock := &MessageHandlerMock{map[string]string{}}
+	fulfillment := &Fulfillment{
+		devices: map[string]Device{
+			"test-blinds": {
+				Topic: "topic/blinds/set",
+				State: LocalState{},
+			},
+		},
+		handler:            messageHandlerMock,
+		executionTemplates: map[string]string{}, // No templates for commands under test
+	}
+
+	tests := []struct {
+		name                string
+		command             string
+		params              ParamsRequest
+		expectedFollowUpTok string
+	}{
+		{
+			name:    "Missing template for OpenClose",
+			command: "action.devices.commands.OpenClose",
+			params: ParamsRequest{
+				OpenPercent:   75,
+				FollowUpToken: "test-token",
+			},
+			expectedFollowUpTok: "test-token",
+		},
+		{
+			name:    "Missing template for OnOff",
+			command: "action.devices.commands.OnOff",
+			params: ParamsRequest{
+				On: true,
+			},
+			expectedFollowUpTok: "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			messageHandlerMock.Reset()
+
+			payload := PayloadRequest{
+				Commands: []CommandRequest{
+					{
+						Devices: []DeviceRequest{
+							{
+								ID: "test-blinds",
+							},
+						},
+						Execution: []ExecutionRequest{
+							{
+								Command: test.command,
+								Params:  test.params,
+							},
+						},
+					},
+				},
+			}
+
+			result := fulfillment.execute("test-request", payload)
+
+			assert.Equal(t, "test-request", result.RequestID)
+			assert.Len(t, result.Payload.Commands, 1)
+			command := result.Payload.Commands[0]
+			assert.Equal(t, ExecuteStatus(Error), command.Status)
+			assert.Equal(t, "hardError", command.ErrorCode)
+			assert.Equal(t, test.expectedFollowUpTok, command.FollowUpToken)
+			assert.Empty(t, messageHandlerMock.messages)
+		})
+	}
+}
+
 type MessageHandlerMock struct {
 	messages map[string]string
 }
