@@ -93,13 +93,13 @@ func (a *Auth) Confirm(page *template.Template) http.HandlerFunc {
 }
 
 func responseError(w http.ResponseWriter, page *template.Template, message string, code int) {
+	w.WriteHeader(code)
 	err := page.Execute(w, PageData{Error: message})
 	if err != nil {
 		log.Error("failed to render login page", "err", err)
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(code)
 }
 
 func checkPasswordHash(password, hash string) bool {
