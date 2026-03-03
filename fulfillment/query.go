@@ -14,27 +14,36 @@ type QueryPayload struct {
 }
 
 type QueryDevice struct {
-	Online    bool   `json:"online,omitempty"`    // Required. Indicates if the device is online (that is, reachable) or not.
-	Status    string `json:"status,omitempty"`    // Required. Result of the query operation. Supported values: SUCCESS Confirm that the query succeeded. OFFLINE Target device is in offline state or unreachable. EXCEPTIONS There is an issue or alert associated with a query. The query could succeed or fail. This status type is typically set when you want to send additional information about another connected device. ERROR Unable to query the target device.
-	ErrorCode string `json:"errorCode,omitempty"` // Expanding ERROR state if needed from the preset error codes, which will map to the errors presented to users.
+	Online    bool        `json:"online,omitempty"`    // Required. Indicates if the device is online (that is, reachable) or not.
+	Status    QueryStatus `json:"status,omitempty"`    // Required. Result of the query operation. Supported values: SUCCESS Confirm that the query succeeded. OFFLINE Target device is in offline state or unreachable. EXCEPTIONS There is an issue or alert associated with a query. The query could succeed or fail. This status type is typically set when you want to send additional information about another connected device. ERROR Unable to query the target device.
+	ErrorCode string      `json:"errorCode,omitempty"` // Expanding ERROR state if needed from the preset error codes, which will map to the errors presented to users.
 
 	On         bool   `json:"on,omitempty"`
 	Brightness int    `json:"brightness,omitempty"`
 	Color      *Color `json:"color,omitempty"`
+
+	OpenPercent   int    `json:"openPercent,omitempty"`   // Required. Indicates the percentage that a device is opened, where 0 is closed and 100 is fully open.
+	OpenDirection string `json:"openDirection,omitempty"` // Required. Direction in which to open. Only present if device supports multiple directions, as indicated by the openDirection attribute, and a direction is specified by the user.
 }
 
 type Color struct {
 	SpectrumRgb int `json:"spectrumRgb,omitempty"`
 }
 
+type QueryStatus string
+
+const (
+	QueryStatusSuccess    QueryStatus = "SUCCESS"    // SUCCESS    Confirm that the query succeeded.
+	QueryStatusOffline                = "OFFLINE"    // OFFLINE    Target device is in offline state or unreachable.
+	QueryStatusExceptions             = "EXCEPTIONS" // EXCEPTIONS There is an issue or alert associated with a query. The query could succeed or fail. This status type is typically set when you want to send additional information about another connected device.
+	QueryStatusError                  = "ERROR"      // ERROR      Unable to query the target device.
+)
+
 func (f *Fulfillment) query(requestId string, payload PayloadRequest) QueryResponse {
 	log.Info("handle sync request", "request", requestId, "payload", payload)
 	devices := map[string]QueryDevice{}
 	for _, device := range payload.Devices {
-		devices[device.ID] = QueryDevice{
-			Online: true,
-			On:     f.devices[device.ID].State.On,
-		}
+		devices[device.ID] = f.buildQueryDevice(device.ID)
 	}
 
 	return QueryResponse{
@@ -42,5 +51,39 @@ func (f *Fulfillment) query(requestId string, payload PayloadRequest) QueryRespo
 		Payload: QueryPayload{
 			Devices: devices,
 		},
+	}
+}
+
+func (f *Fulfillment) buildQueryDevice(deviceId string) QueryDevice {
+	switch f.devices[deviceId].Type {
+	case "action.devices.types.OUTLET":
+		return QueryDevice{
+			Status: QueryStatusSuccess,
+			Online: true,
+			On:     f.devices[deviceId].State.On,
+		}
+	case "action.devices.types.LIGHT":
+		return QueryDevice{
+			Status:     QueryStatusSuccess,
+			Online:     true,
+			On:         f.devices[deviceId].State.On,
+			Brightness: 100,
+		}
+	case "action.devices.types.BLIND":
+		percent := 0
+		if f.devices[deviceId].State.On {
+			percent = 100
+		}
+
+		return QueryDevice{
+			Status:      QueryStatusSuccess,
+			Online:      true,
+			OpenPercent: percent,
+		}
+	}
+
+	return QueryDevice{
+		Status:    QueryStatusError,
+		ErrorCode: "functionNotSupported",
 	}
 }

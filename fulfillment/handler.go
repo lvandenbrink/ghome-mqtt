@@ -63,6 +63,7 @@ type EmptyResponse struct {
 
 type Device struct {
 	Topic string
+	Type  string
 	State LocalState
 }
 type LocalState struct {
@@ -105,6 +106,7 @@ func initDevices(deviceConfigs map[string]config.DeviceConfig) (map[string]Devic
 	for id, config := range deviceConfigs {
 		devices[id] = Device{
 			Topic: config.Topic,
+			Type:  config.Type,
 			State: LocalState{
 				State: "off",
 				On:    true,
