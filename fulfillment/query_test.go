@@ -18,7 +18,7 @@ func TestQuery(t *testing.T) {
 				State: LocalState{On: false},
 			},
 			"blind-1": {
-				Type:  "action.devices.types.BLIND",
+				Type:  "action.devices.types.BLINDS",
 				State: LocalState{On: false},
 			},
 		},

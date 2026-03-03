@@ -69,7 +69,7 @@ func (f *Fulfillment) buildQueryDevice(deviceId string) QueryDevice {
 			On:         f.devices[deviceId].State.On,
 			Brightness: 100,
 		}
-	case "action.devices.types.BLIND":
+	case "action.devices.types.BLINDS":
 		percent := 0
 		if f.devices[deviceId].State.On {
 			percent = 100
