@@ -75,3 +75,45 @@ func TestQuery(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleQueryIntentWithJaguarInput(t *testing.T) {
+	fulfillment := &Fulfillment{
+		devices: map[string]Device{
+			"jaguar": {
+				Type:  "action.devices.types.BLINDS",
+				State: LocalState{On: true},
+			},
+		},
+	}
+
+	request := FullfillementRequest{
+		RequestID: "query-jaguar-request",
+		Inputs: []InputRequest{
+			{
+				Intent: "action.devices.QUERY",
+				Payload: PayloadRequest{
+					AgentUserID: "",
+					Devices: []DeviceRequest{
+						{ID: "jaguar", CustomData: nil},
+					},
+				},
+			},
+		},
+	}
+
+	responseValue := fulfillment.handle(request, "")
+	response, ok := responseValue.(QueryResponse)
+	if !assert.True(t, ok, "expected QueryResponse from QUERY intent") {
+		return
+	}
+
+	assert.Equal(t, "query-jaguar-request", response.RequestID)
+	device, exists := response.Payload.Devices["jaguar"]
+	if !assert.True(t, exists, "expected jaguar in query response") {
+		return
+	}
+
+	assert.Equal(t, QueryStatusSuccess, device.Status)
+	assert.True(t, device.Online)
+	assert.Equal(t, 100, device.OpenPercent)
+}

@@ -90,7 +90,7 @@ type ExecuteStates struct {
 func (f *Fulfillment) execute(requestId string, payload PayloadRequest) ExecuteResponse {
 	log.Info("handle execute request", "request", requestId, "payload", payload)
 
-	executeCommands := []ExecuteCommands{}
+	var executeCommands []ExecuteCommands
 	for _, command := range payload.Commands {
 		for _, device := range command.Devices {
 			if deviceState, ok := f.devices[device.ID]; !ok {
@@ -158,6 +158,7 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 
 		f.sentCommand(deviceId, message)
 		return ExecuteCommands{
+			Ids:           []string{deviceId},
 			FollowUpToken: followUpToken,
 			Status:        Success,
 			OpenPercent:   execution.Params.OpenPercent,
@@ -221,8 +222,9 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 	default:
 		log.Info("execute command", "command", execution.Command, "device", deviceId)
 		return ExecuteCommands{
-			Ids:    []string{deviceId},
-			Status: Error,
+			Ids:       []string{deviceId},
+			Status:    Error,
+			ErrorCode: "functionNotSupported",
 			States: ExecuteStates{
 				Online: false,
 			},

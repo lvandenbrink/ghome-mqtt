@@ -4,9 +4,10 @@
 package main
 
 import (
+	"testing"
+
 	"github.com/mrlauy/ghome-mqtt/config"
 	mqtt2 "github.com/mrlauy/ghome-mqtt/mqtt"
-	"testing"
 
 	"github.com/stretchr/testify/require"
 )

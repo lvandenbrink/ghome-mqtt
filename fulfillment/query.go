@@ -82,6 +82,7 @@ func (f *Fulfillment) buildQueryDevice(deviceId string) QueryDevice {
 		}
 	}
 
+	log.Error("failed to build query response", "deviceId", deviceId, "devices", f.devices)
 	return QueryDevice{
 		Status:    QueryStatusError,
 		ErrorCode: "functionNotSupported",
