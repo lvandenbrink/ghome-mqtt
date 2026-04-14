@@ -18,8 +18,9 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port int    `yaml:"port" env:"SERVER_PORT" env-default:"8080"`
-	Host string `yaml:"host" env:"HOST" env-default:"localhost"`
+	Port  int    `yaml:"port" env:"SERVER_PORT" env-default:"8080"`
+	Host  string `yaml:"host" env:"HOST" env-default:"localhost"`
+	Debug bool   `yaml:"debug" env:"DEBUG" env-default:"false"`
 }
 
 type AuthConfig struct {

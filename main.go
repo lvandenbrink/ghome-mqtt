@@ -64,6 +64,10 @@ func main() {
 	router.HandleFunc("/oauth/authorize", auth.Authorize)
 	router.HandleFunc("/oauth/token", auth.Token)
 
+	if cfg.Server.Debug {
+		router.HandleFunc("/state", fulfillmentManager.StateHandler)
+	}
+
 	smarthomeRouter := router.PathPrefix("/smarthome").Subrouter()
 	smarthomeRouter.Use(auth.ValidateToken)
 	smarthomeRouter.HandleFunc("/fulfillment", fulfillmentManager.Handler).Methods("POST")
