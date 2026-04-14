@@ -137,7 +137,9 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 			return errorCommand(deviceId)
 		}
 
-		f.sentCommand(deviceId, message)
+		if err := f.sentCommand(deviceId, message); err != nil {
+			return deviceOfflineCommand(deviceId, "")
+		}
 		device.State.On = execution.Params.On
 		return ExecuteCommands{
 			Ids:    []string{deviceId},
@@ -156,7 +158,9 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 			return errorFollowUpCommand(followUpToken)
 		}
 
-		f.sentCommand(deviceId, message)
+		if err := f.sentCommand(deviceId, message); err != nil {
+			return deviceOfflineCommand(deviceId, followUpToken)
+		}
 		return ExecuteCommands{
 			Ids:           []string{deviceId},
 			FollowUpToken: followUpToken,
@@ -170,7 +174,9 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 			return errorCommand(deviceId)
 		}
 
-		f.sentCommand(deviceId, message)
+		if err := f.sentCommand(deviceId, message); err != nil {
+			return deviceOfflineCommand(deviceId, "")
+		}
 		return ExecuteCommands{
 			Ids:    []string{deviceId},
 			Status: Success,
@@ -188,7 +194,9 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 			return errorCommand(deviceId)
 		}
 
-		f.sentCommand(deviceId, message)
+		if err := f.sentCommand(deviceId, message); err != nil {
+			return deviceOfflineCommand(deviceId, "")
+		}
 		return ExecuteCommands{
 			Ids:    []string{deviceId},
 			Status: Success,
@@ -209,7 +217,9 @@ func (f *Fulfillment) executeCommand(deviceId string, execution ExecutionRequest
 			return errorCommand(deviceId)
 		}
 
-		f.sentCommand(deviceId, message)
+		if err := f.sentCommand(deviceId, message); err != nil {
+			return deviceOfflineCommand(deviceId, "")
+		}
 		return ExecuteCommands{
 			Ids:    []string{deviceId},
 			Status: Success,
@@ -249,9 +259,9 @@ func (f *Fulfillment) fillMessage(deviceId string, command string, args ...any) 
 	return message, nil
 }
 
-func (f *Fulfillment) sentCommand(deviceId string, message string) {
+func (f *Fulfillment) sentCommand(deviceId string, message string) error {
 	topic := f.devices[deviceId].Topic
-	f.handler.SendMessage(topic, message)
+	return f.handler.SendMessage(topic, message)
 }
 
 func errorCommand(deviceId string) ExecuteCommands {
@@ -266,6 +276,15 @@ func errorFollowUpCommand(followUpToken string) ExecuteCommands {
 		FollowUpToken: followUpToken,
 		Status:        Error,
 		ErrorCode:     "hardError",
+	}
+}
+func deviceOfflineCommand(deviceId string, followUpToken string) ExecuteCommands {
+	return ExecuteCommands{
+		Ids:           []string{deviceId},
+		FollowUpToken: followUpToken,
+		Status:        Error,
+		ErrorCode:     "deviceOffline",
+		States:        ExecuteStates{Online: false},
 	}
 }
 

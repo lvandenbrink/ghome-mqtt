@@ -80,7 +80,7 @@ type Fulfillment struct {
 }
 
 type MessageHandler interface {
-	SendMessage(topic string, message string)
+	SendMessage(topic string, message string) error
 	RegisterStateChangeListener(device string, topic string, callback func(string, map[string]interface{})) error
 }
 

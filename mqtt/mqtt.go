@@ -65,12 +65,18 @@ func (m *Mqtt) RegisterStateChangeListener(device string, topic string, callback
 	return nil
 }
 
-func (m *Mqtt) SendMessage(topic string, message string) {
+func (m *Mqtt) SendMessage(topic string, message string) error {
 	log.Info("send mqtt message", "topic", topic, "message", message)
 	token := m.client.Publish(topic, 0, false, message)
 	if !token.WaitTimeout(publishTimeout) {
 		log.Error("failed to publish message due to timeout", "topic", topic, "message", message, "token-error", token.Error())
+		return fmt.Errorf("failed to publish message due to timeout")
 	}
+	if err := token.Error(); err != nil {
+		log.Error("failed to publish message", "topic", topic, "message", message, "token-error", err)
+		return fmt.Errorf("failed to publish message")
+	}
+	return nil
 }
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {

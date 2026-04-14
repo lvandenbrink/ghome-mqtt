@@ -2,6 +2,7 @@ package fulfillment
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -99,7 +100,7 @@ func TestFillMessage(t *testing.T) {
 }
 
 func TestExecute(t *testing.T) {
-	messageHandlerMock := &MessageHandlerMock{map[string]string{}}
+	messageHandlerMock := &MessageHandlerMock{map[string]string{}, map[string]error{}}
 	fulfillment := &Fulfillment{
 		devices: map[string]Device{
 			"test-device": {
@@ -121,6 +122,7 @@ func TestExecute(t *testing.T) {
 		name                string
 		requestId           string
 		payload             PayloadRequest
+		sendMessageResponse error
 		expectedResult      ExecuteResponse
 		expectedPublication bool
 		expectedTopic       string
@@ -275,14 +277,42 @@ func TestExecute(t *testing.T) {
 			},
 			expectedPublication: false,
 		},
+		{
+			name:      "Device offline error",
+			requestId: "offline-request",
+			payload: PayloadRequest{
+				AgentUserID: "",
+				Commands: []CommandRequest{
+					{
+						Devices: []DeviceRequest{{ID: "test-device"}},
+						Execution: []ExecutionRequest{{
+							Command: "action.devices.commands.volumeRelative",
+							Params:  ParamsRequest{RelativeSteps: 1},
+						}},
+					},
+				},
+			},
+			sendMessageResponse: fmt.Errorf("device offline"),
+			expectedResult: ExecuteResponse{
+				RequestID: "offline-request",
+				Payload: ExecutePayload{
+					Commands: []ExecuteCommands{
+						deviceOfflineCommand("test-device", ""),
+					},
+				},
+			},
+			expectedTopic:       "topic/device-id/set",
+			expectedMessage:     `{"volume":"increase"}`,
+			expectedPublication: true,
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			messageHandlerMock.Reset()
+			messageHandlerMock.sendResponses[test.expectedTopic] = test.sendMessageResponse
 
 			result := fulfillment.execute(test.requestId, test.payload)
-
 			assert.Equal(t, test.expectedResult, result)
 			if test.expectedPublication {
 				assert.Contains(t, messageHandlerMock.messages, test.expectedTopic)
@@ -295,7 +325,7 @@ func TestExecute(t *testing.T) {
 }
 
 func TestStateChange(t *testing.T) {
-	messageHandlerMock := &MessageHandlerMock{map[string]string{}}
+	messageHandlerMock := &MessageHandlerMock{map[string]string{}, map[string]error{}}
 	fulfillment := &Fulfillment{
 		devices: map[string]Device{
 			"test-device": {
@@ -339,7 +369,7 @@ func TestStateChange(t *testing.T) {
 }
 
 func TestOpenCloseTrait(t *testing.T) {
-	messageHandlerMock := &MessageHandlerMock{map[string]string{}}
+	messageHandlerMock := &MessageHandlerMock{map[string]string{}, map[string]error{}}
 	fulfillment := &Fulfillment{
 		devices: map[string]Device{
 			"test-blinds": {
@@ -454,7 +484,7 @@ func TestOpenCloseTrait(t *testing.T) {
 }
 
 func TestTraitWithMissingTemplate(t *testing.T) {
-	messageHandlerMock := &MessageHandlerMock{map[string]string{}}
+	messageHandlerMock := &MessageHandlerMock{map[string]string{}, map[string]error{}}
 	fulfillment := &Fulfillment{
 		devices: map[string]Device{
 			"test-blinds": {
@@ -527,16 +557,23 @@ func TestTraitWithMissingTemplate(t *testing.T) {
 }
 
 type MessageHandlerMock struct {
-	messages map[string]string
+	messages      map[string]string
+	sendResponses map[string]error
 }
 
 func (m *MessageHandlerMock) Reset() {
 	m.messages = map[string]string{}
+	m.sendResponses = map[string]error{}
 }
 
-func (m *MessageHandlerMock) SendMessage(topic string, message string) {
+func (m *MessageHandlerMock) SendMessage(topic string, message string) error {
 	m.messages[topic] = message
+	if m.sendResponses[topic] != nil {
+		return m.sendResponses[topic]
+	}
+	return nil
 }
+
 func (m *MessageHandlerMock) RegisterStateChangeListener(device string, topic string, callback func(string, map[string]interface{})) error {
 	return nil
 }
