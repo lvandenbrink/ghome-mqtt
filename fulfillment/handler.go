@@ -53,7 +53,7 @@ type ParamsRequest struct {
 	VolumeLevel   int  `json:"volumeLevel,omitempty"`
 	RelativeSteps int  `json:"relativeSteps,omitempty"`
 	// action.devices.traits.OpenClose
-	OpenPercent   int    `json:"openPercent,omitempty"`
+	OpenPercent   int    `json:"openPercent,omitempty"` // where 0 is closed and 100 is fully open
 	OpenDirection string `json:"openDirection,omitempty"`
 	FollowUpToken string `json:"followUpToken,omitempty"`
 }
@@ -108,8 +108,7 @@ func initDevices(deviceConfigs map[string]config.DeviceConfig) (map[string]Devic
 			Topic: config.Topic,
 			Type:  config.Type,
 			State: LocalState{
-				State: "off",
-				On:    true,
+				On: true,
 			},
 		}
 	}

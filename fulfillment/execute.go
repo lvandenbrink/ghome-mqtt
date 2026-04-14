@@ -90,7 +90,7 @@ type ExecuteStates struct {
 func (f *Fulfillment) execute(requestId string, payload PayloadRequest) ExecuteResponse {
 	log.Info("handle execute request", "request", requestId, "payload", payload)
 
-	var executeCommands []ExecuteCommands
+	executeCommands := make([]ExecuteCommands, 0)
 	for _, command := range payload.Commands {
 		for _, device := range command.Devices {
 			if deviceState, ok := f.devices[device.ID]; !ok {
@@ -277,7 +277,7 @@ func onOffValue(on bool) string {
 }
 
 func openCloseValue(value int) string {
-	if value > 50 {
+	if value < 50 {
 		return "CLOSE"
 	}
 	return "OPEN"

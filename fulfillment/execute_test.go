@@ -106,6 +106,10 @@ func TestExecute(t *testing.T) {
 				Topic: "topic/device-id/set",
 				State: LocalState{},
 			},
+			"other-device": {
+				Topic: "topic/device1-id/set",
+				State: LocalState{},
+			},
 		},
 		handler: messageHandlerMock,
 		executionTemplates: map[string]string{
@@ -152,6 +156,59 @@ func TestExecute(t *testing.T) {
 					Commands: []ExecuteCommands{
 						{
 							Ids:    []string{"test-device"},
+							Status: Success,
+							States: ExecuteStates{
+								Online:        true,
+								CurrentVolume: 9,
+							},
+						},
+					},
+				},
+			},
+			expectedPublication: true,
+			expectedTopic:       "topic/device-id/set",
+			expectedMessage:     `{"volume":"decrease"}`,
+		},
+		{
+			name:      "Test multiple devices request",
+			requestId: "test-request",
+			payload: PayloadRequest{
+				AgentUserID: "",
+				Commands: []CommandRequest{
+					{
+						Devices: []DeviceRequest{
+							{
+								ID: "test-device",
+							},
+							{
+								ID: "other-device",
+							},
+						},
+						Execution: []ExecutionRequest{
+							{
+								Command: "action.devices.commands.volumeRelative",
+								Params: ParamsRequest{
+									RelativeSteps: -1,
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedResult: ExecuteResponse{
+				RequestID: "test-request",
+				Payload: ExecutePayload{
+					Commands: []ExecuteCommands{
+						{
+							Ids:    []string{"test-device"},
+							Status: Success,
+							States: ExecuteStates{
+								Online:        true,
+								CurrentVolume: 9,
+							},
+						},
+						{
+							Ids:    []string{"other-device"},
 							Status: Success,
 							States: ExecuteStates{
 								Online:        true,
@@ -300,7 +357,6 @@ func TestOpenCloseTrait(t *testing.T) {
 		name                string
 		requestId           string
 		openPercent         int
-		expectedCommand     string
 		expectedStatus      ExecuteStatus
 		expectedOpenPercent int
 		expectedPublication bool
@@ -310,47 +366,42 @@ func TestOpenCloseTrait(t *testing.T) {
 			name:                "Open blinds with 75% (above 50%)",
 			requestId:           "open-blinds",
 			openPercent:         75,
-			expectedCommand:     "CLOSE",
 			expectedStatus:      Success,
 			expectedOpenPercent: 75,
 			expectedPublication: true,
-			expectedMessage:     `{"command":"CLOSE"}`,
+			expectedMessage:     `{"command":"OPEN"}`,
 		},
 		{
 			name:                "Close blinds with 25% (below 50%)",
 			requestId:           "close-blinds",
 			openPercent:         25,
-			expectedCommand:     "OPEN",
 			expectedStatus:      Success,
 			expectedOpenPercent: 25,
 			expectedPublication: true,
-			expectedMessage:     `{"command":"OPEN"}`,
+			expectedMessage:     `{"command":"CLOSE"}`,
 		},
 		{
 			name:                "Fully open at 100%",
 			requestId:           "fully-open",
 			openPercent:         100,
-			expectedCommand:     "CLOSE",
 			expectedStatus:      Success,
 			expectedOpenPercent: 100,
 			expectedPublication: true,
-			expectedMessage:     `{"command":"CLOSE"}`,
+			expectedMessage:     `{"command":"OPEN"}`,
 		},
 		{
 			name:                "Fully closed at 0%",
 			requestId:           "fully-closed",
 			openPercent:         0,
-			expectedCommand:     "OPEN",
 			expectedStatus:      Success,
 			expectedOpenPercent: 0,
 			expectedPublication: true,
-			expectedMessage:     `{"command":"OPEN"}`,
+			expectedMessage:     `{"command":"CLOSE"}`,
 		},
 		{
 			name:                "Boundary case at 50%",
 			requestId:           "boundary-50",
 			openPercent:         50,
-			expectedCommand:     "OPEN",
 			expectedStatus:      Success,
 			expectedOpenPercent: 50,
 			expectedPublication: true,
